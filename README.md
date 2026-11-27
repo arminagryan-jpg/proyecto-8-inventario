@@ -1,1 +1,2 @@
 # proyecto-8-inventario
+El proyecto representa una revisión diaria para detectar fechas falsas o datos inconsistentes en el registro, y en esencia procesa transacciones diarias (venta y devolucion) sobre un diccionario inventario usando Python puro (sin atajos externos): valida si existe el sku, comprueba si hay stock suficiente antes de descontar, registra las incidencias sin detener el programa, acumula el valor total del inventario (stock_actual * costo_unitario) y detecta qué productos quedan por debajo de su stock_minimo al cierre de operaciones.
