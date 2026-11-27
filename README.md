@@ -1,21 +1,24 @@
-# Proyecto 08: Gestor de Inventario y Alerta de Reposición
+## Análisis del proyecto (enfoque Data Analyst)
 
-## Resumen
-Este proyecto consiste en validar y transformar registros operativos diarios para convertir datos sin procesar en información confiable para el control de inventario y la toma de decisiones. En esencia, el script en Python puro procesa movimientos diarios (`venta` y `devolucion`) sobre un diccionario `inventario` y una lista `transacciones`, revisa posibles inconsistencias o registros anómalos, calcula el valor total del stock disponible y detecta qué productos quedan por debajo de su `stock_minimo` al cierre de operaciones.
+### 1. Qué hice como analista
+- **Revisé los datos antes de modificar el inventario:** Traté las transacciones (`venta` y `devolucion`) como datos operativos que podían tener errores o cantidades imposibles, en lugar de darlos por válidos sin comprobar.
+- **Apliqué controles de calidad:** Verifiqué que el `sku` existiera en `inventario` antes de leer sus datos (evitando fallos con `SKU-99`) y comprobé que hubiera stock suficiente (`stock_actual >= cantidad`) antes de descontar una venta (evitando que `SKU-02` quedara en negativo).
+- **Registré incidencias sin detener el proceso:** Guardé los casos problemáticos en `incidencias` y dejé que el resto de movimientos válidos continuaran.
+- **Calculé métricas y alertas al cierre:** Al terminar las transacciones, sumé el valor económico del stock restante y marqué los productos por debajo de su `stock_minimo`.
 
-Desde el enfoque de análisis de datos, muestra cómo traducir reglas de negocio y controles de calidad de datos en una lógica clara, trazable y reproducible sin interrumpir el flujo ante entradas inválidas.
+### 2. Métricas y hallazgos principales
+- **Incidencias en transacciones:** **2 de 5** operaciones (**40 %**) no se pudieron aplicar:
+  - `SKU-99` (venta de 1 unidad): no existe en el catálogo (`inventario`).
+  - `SKU-02` / *Monitor 24* (venta de 6 unidades): supera las **4** unidades disponibles.
+- **Stock final por producto:**
+  - `SKU-01` (*Teclado RGB*): de **16** a **4** unidades (mínimo: **5**).
+  - `SKU-02` (*Monitor 24*): se mantiene en **4** unidades al rechazarse la venta (mínimo: **5**).
+  - `SKU-03` (*Mouse Gamer*): sube de **8** a **11** unidades por una devolución de **3** (mínimo: **10**).
+  - `SKU-04` (*Audifonos Pro*): baja de **2** a **0** unidades (mínimo: **4**).
+- **Valor total del inventario (`valor_total`):** **1,035.00** (`(4 × 40.0) + (4 × 150.0) + (11 × 25.0) + (0 × 65.0)`). Solo `SKU-02` representa **600.00** (**~58 %**) de ese valor.
+- **Alertas de reposición (`stock_actual < stock_minimo`):** **3 de 4** productos cierran por debajo de su mínimo (`SKU-01`, `SKU-02` y `SKU-04`). Solo `SKU-03` (`11` vs. `10`) queda por encima.
 
-## Reglas de negocio y lógica
-- **Validación de SKU:** Si el `sku` de una transacción no existe en `inventario`, se registra una incidencia en `incidencias` y no se modifica el stock.
-- **Ventas (`venta`):** Solo se descuenta `cantidad` de `stock_actual` si hay unidades suficientes (`disponible >= cantidad`); si no alcanza, se rechaza la operación y se guarda en `incidencias` sin alterar el stock.
-- **Devoluciones (`devolucion`):** Suma las unidades devueltas (`cantidad`) al `stock_actual` del producto correspondiente.
-- **Valoración total del inventario:** Tras procesar las transacciones, acumula `stock_actual * costo_unitario` de cada producto en `valor_total` (`+=`).
-- **Alertas de reposición:** Al cierre del ciclo, revisa qué productos tienen `stock_actual < stock_minimo` y los añade a `alertas_reposicion` (`.append()`).
-
-## Cómo ejecutarlo en Google Colab
-1. Abre [Google Colab](https://colab.research.google.com/) y crea un nuevo notebook.
-2. Ejecuta los datos iniciales (`inventario`, `transacciones` y `incidencias = []`) y luego el bloque de procesamiento de transacciones, cálculo de valor total y alertas de reposición (`Shift + Enter`).
-3. Revisa las salidas impresas (`incidencias`, `valor_total` y `alertas_reposicion`).
-
-## Conclusión
-Este proyecto me permitió practicar la lógica base de Python puro—estructuras de datos (`diccionarios` y `listas`), bucles (`for`), condicionales (`if`/`elif`/`else`), acumuladores (`+=`) y validación de casos límite—aplicada a un escenario cotidiano de control de inventario y revisión de registros, dejando el flujo documentado y listo en GitHub para futuras mejoras.
+### 3. Conclusiones y siguientes pasos
+- **Prioridad alta de reposición:** La mayor parte del catálogo queda por debajo del stock mínimo al cierre, con `SKU-04` agotado (**0** unidades).
+- **Revisar reposiciones previas:** `SKU-02`, `SKU-03` y `SKU-04` ya empezaban por debajo de su `stock_minimo` antes de las transacciones del día, lo que sugiere demoras al reponer o umbrales mínimos que conviene ajustar.
+- **Revisar códigos de venta:** La venta de `SKU-99` apunta a un posible error de código o a un producto aún no registrado en `inventario` que conviene verificar.
