@@ -1,4 +1,4 @@
-## Análisis del proyecto (enfoque Data Analyst)
+## Análisis del proyecto 
 
 ### 1. Qué hice como analista
 - **Revisé los datos antes de modificar el inventario:** Traté las transacciones (`venta` y `devolucion`) como datos operativos que podían tener errores o cantidades imposibles, en lugar de darlos por válidos sin comprobar.
